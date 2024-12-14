@@ -1,0 +1,56 @@
+services:
+  php:
+    container_name: number-finder-php
+    build: 
+      context: ./php
+    ports:
+      - 9001:9000
+    networks:
+      - number-finder-bridge-network
+    volumes:
+      - ./app:/var/www/
+      - ./php/php.ini:/usr/local/etc/php/php.ini
+  nginx:
+    container_name: number-finder-nginx
+    build:
+      context: ./nginx
+    ports:
+      - 8888:80
+    volumes:
+      - ./app:/var/www/
+      - ./app/storage/app/public:/var/www/public/storage
+      - ./nginx/logs:/var/log/nginx
+    networks:
+      - number-finder-bridge-network
+  adminer:
+    container_name: number-finder-adminer
+    image: adminer
+    restart: always
+    ports:
+      - 8008:8080
+    networks:
+      - number-finder-bridge-network
+  db:
+    image: mysql:latest
+    container_name: number-finder-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: admin
+      MYSQL_DATABASE: number_finder_db
+      MYSQL_USER: qweqwe
+      MYSQL_PASSWORD: admin
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+    ports:
+      - 6633:3306
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql:/docker-entrypoint-initdb.d
+    networks:
+      - number-finder-bridge-network
+volumes:
+  mysql_data:
+
+networks:
+  number-finder-bridge-network:
+    driver: bridge
